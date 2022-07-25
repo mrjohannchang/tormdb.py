@@ -7,7 +7,6 @@ object_id_to_table_name_map: Dict[int, str] = dict()
 
 
 def get_object_if_exists(table_name: str) -> Any:
-    print('DBG get_object_if_exists()')
     obj_id: int
     name: str
     for obj_id, name in object_id_to_table_name_map.items():
@@ -35,7 +34,6 @@ def clear_dangling(obj: Any, db: Union[str, dataset.Database] = 'config.db'):
         for row in db[pending_scan_table_names[0]].all():
             if row['type'] == 'Table':
                 if row['value'] not in associated_table_names:
-                    print(f'{row["name"]=}')
                     associated_table_names.add(row['value'])
                     pending_scan_table_names.append(row['value'])
         pending_scan_table_names.pop(0)
@@ -65,18 +63,13 @@ def load_table(table_name: str, classes: List[Type], db: Union[str, dataset.Data
     if table_name not in db:
         return
 
-    print(f'DBG: {table_name=}')
     d: Dict[str, Any] = dict()
 
     row: Dict[str, Any]
     for row in db[table_name].all():
-        print(f'DBG: {row=}')
         d[row['name']] = load_table(row['value'], classes, db) if row['type'] == 'Table' else row['value']
 
-    print(f'DBG: {d=}')
-
     obj: Any = get_object_if_exists(table_name)
-    print(f'DBG: {obj=}')
     if obj:
         obj.__dict__.update(d)
     else:
@@ -85,13 +78,10 @@ def load_table(table_name: str, classes: List[Type], db: Union[str, dataset.Data
         obj = class_dict[table_name.split('#')[0]](**d)
         object_id_to_table_name_map[id(obj)] = table_name
 
-    print(f'DBG: 123')
     return obj
 
 
 def save(obj: Any, db: Union[str, dataset.Database] = 'config.db', is_root: bool = True) -> str:
-    print(f'{db=}, {obj=}')
-
     if not isinstance(db, dataset.Database):
         db_ins: dataset.Database
         with dataset.connect(f'sqlite:///{db}?check_same_thread=False') as db_ins:
@@ -106,19 +96,15 @@ def save(obj: Any, db: Union[str, dataset.Database] = 'config.db', is_root: bool
     val: Any
     for attr, val in vars(obj).items():
         if attr.startswith('_'):
-            print(f'{attr} starts with _')
             continue
 
         if callable(val):
-            print(f'{attr} is a callable')
             continue
 
         if val.__class__.__module__ == 'builtins':
-            print(f'{attr} is an instance of the built-in class {type(val).__name__}')
             db[table_name].upsert(dict(name=attr, type=type(val).__name__, value=val), ['name'])
             continue
 
-        print(f'{attr} is an instance of {type(val).__name__}')
         db[table_name].upsert(dict(name=attr, type='Table', value=save(val, db, False)), ['name'])
 
     if is_root:
