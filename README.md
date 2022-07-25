@@ -1,10 +1,13 @@
 # tormdb
 
 `tormdb` stands for Transposed Object Relational Mapping Database.
+`tormdb` stores your objects into SQLite for maintaining the accessibility across runtimes without you inheriting any customized Classes.
 
 ## Usage
 
 ### Save
+
+`tormdb.save(<object>)`
 
 ```
 import dataclasses
@@ -41,6 +44,8 @@ tormdb.save(family)
 ```
 
 ### Load
+
+`<object> = tormdb.load(<List[Class]>)`
 
 ```
 import dataclasses
