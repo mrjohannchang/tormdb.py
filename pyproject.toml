@@ -1,0 +1,17 @@
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
+[tool.poetry]
+name = "tormdb"
+version = "0.0.1"
+description = ""
+homepage = "https://github.com/changyuheng/tormdb"
+authors = ["Henry Chang <mr.changyuheng@gmail.com>"]
+license = "MPL-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8.1"
+
+[tool.poetry.dev-dependencies]

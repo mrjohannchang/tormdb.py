@@ -1,0 +1,15 @@
+[color]
+	ui = auto
+[core]
+	quotepath = no
+[diff]
+	algorithm = patience
+	tool = vimdiff
+[merge]
+	algorithm = patience
+	tool = vimdiff
+[push]
+	default = simple
+[user]
+	email = mr.changyuheng@gmail.com
+	name = Henry Chang
