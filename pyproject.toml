@@ -10,8 +10,12 @@ homepage = "https://github.com/changyuheng/tormdb"
 authors = ["Henry Chang <mr.changyuheng@gmail.com>"]
 license = "MPL-2.0"
 readme = "README.md"
+packages = [
+    {include = "tormdb", from = "packages"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.8.1"
+dataset = "^1.3.2"
 
 [tool.poetry.dev-dependencies]
