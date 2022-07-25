@@ -4,10 +4,10 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "tormdb"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
-homepage = "https://github.com/changyuheng/tormdb"
-authors = ["Henry Chang <mr.changyuheng@gmail.com>"]
+homepage = "https://github.com/changyuheng/tormdb.py"
+authors = ["Johann Chang <mr.changyuheng@gmail.com>"]
 license = "MPL-2.0"
 readme = "README.md"
 packages = [
