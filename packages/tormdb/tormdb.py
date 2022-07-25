@@ -63,20 +63,31 @@ def load_table(table_name: str, classes: List[Type], db: Union[str, dataset.Data
     if table_name not in db:
         return
 
-    d: Dict[str, Any] = dict()
-
-    row: Dict[str, Any]
-    for row in db[table_name].all():
-        d[row['name']] = load_table(row['value'], classes, db) if row['type'] == 'Table' else row['value']
-
     obj: Any = get_object_if_exists(table_name)
-    if obj:
-        obj.__dict__.update(d)
+
+    if type(obj) == list or table_name.split('#')[0] == 'list':
+        l: List[Any] = list()
+
+        row: Dict[str, Any]
+        for row in db[table_name].all():
+            l.append(load_table(row['value'], classes, db) if row['type'] == 'Table' else row['value'])
+
+        obj = l[:]
+        object_id_to_table_name_map[id(l)] = table_name
     else:
-        klass: Type
-        class_dict: Dict[str, Type] = {klass.__name__: klass for klass in classes}
-        obj = class_dict[table_name.split('#')[0]](**d)
-        object_id_to_table_name_map[id(obj)] = table_name
+        d: Dict[str, Any] = dict()
+
+        row: Dict[str, Any]
+        for row in db[table_name].all():
+            d[row['name']] = load_table(row['value'], classes, db) if row['type'] == 'Table' else row['value']
+
+        if obj:
+            obj.__dict__.update(d)
+        else:
+            klass: Type
+            class_dict: Dict[str, Type] = {klass.__name__: klass for klass in classes}
+            obj = class_dict[table_name.split('#')[0]](**d)
+            object_id_to_table_name_map[id(obj)] = table_name
 
     return obj
 
@@ -92,20 +103,31 @@ def save(obj: Any, db: Union[str, dataset.Database] = 'config.db', is_root: bool
         object_id_to_table_name_map.clear()
 
     table_name: str = get_table_name(obj, is_root)
-    attr: str
-    val: Any
-    for attr, val in vars(obj).items():
-        if attr.startswith('_'):
-            continue
 
-        if callable(val):
-            continue
+    if type(obj) == list:
+        i: int
+        val: Any
+        for i, val in enumerate(obj):
+            if val.__class__.__module__ == 'builtins' and type(val) != list:
+                db[table_name].upsert(dict(name=str(i), type=type(val).__name__, value=val), ['name'])
+                continue
 
-        if val.__class__.__module__ == 'builtins':
-            db[table_name].upsert(dict(name=attr, type=type(val).__name__, value=val), ['name'])
-            continue
+            db[table_name].upsert(dict(name=str(i), type='Table', value=save(val, db, False)), ['name'])
+    else:
+        attr: str
+        val: Any
+        for attr, val in vars(obj).items():
+            if attr.startswith('_'):
+                continue
 
-        db[table_name].upsert(dict(name=attr, type='Table', value=save(val, db, False)), ['name'])
+            if callable(val):
+                continue
+
+            if val.__class__.__module__ == 'builtins' and type(val) != list:
+                db[table_name].upsert(dict(name=attr, type=type(val).__name__, value=val), ['name'])
+                continue
+
+            db[table_name].upsert(dict(name=attr, type='Table', value=save(val, db, False)), ['name'])
 
     if is_root:
         clear_dangling(obj, db)

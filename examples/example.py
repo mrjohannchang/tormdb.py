@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import dataclasses
-from typing import Optional
+from typing import List, Optional
 
 import tormdb
 
@@ -13,10 +13,9 @@ class Person:
 
 @dataclasses.dataclass
 class Family:
-    daughter: Person
     husband: Person
-    son: Person
     wife: Person
+    children: List[Person] = dataclasses.field(default_factory=list)
 
 
 family: Optional[Family] = tormdb.load([Family, Person])
@@ -29,10 +28,9 @@ son: Person
 daughter = son = Person('Alex', 0)
 
 family = Family(
-    daughter=daughter,
     husband=husband,
-    son=son,
-    wife=wife)
+    wife=wife,
+    children=[daughter, son])
 
 tormdb.save(family)
 print(tormdb.load([Family, Person]))
